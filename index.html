@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FoxReport — Hacker-Style Panel </title>
+  <meta name="description" content="Harmless prank/demo — simulates auto-report panel UI only." />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app" aria-live="polite">
+    <!-- Matrix background canvas -->
+    <canvas id="matrix"></canvas>
+
+    <!-- Top header -->
+    <header class="top">
+      <div class="brand">🦊 <span class="title">FoxReport</span></div>
+      <div class="controls">
+        <button id="helpBtn" class="icon" title="Help (H)" aria-label="Help">❔</button>
+        <button id="toggleConsoleBtn" class="icon" title="Toggle Console (C)" aria-label="Toggle Console">🖥️</button>
+        <button id="fullscreenBtn" class="icon" title="Fullscreen (F)" aria-label="Fullscreen">⤢</button>
+        <button id="muteBtn" class="icon" title="Mute (M)" aria-label="Mute">🔊</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="left-panel card" id="leftPanel">
+        <div class="panel-head">Target & Controls</div>
+        <label for="username">Enter TikTok username</label>
+        <input id="username" type="text" placeholder="@friend123" aria-label="TikTok username">
+
+        <div class="row">
+          <button id="startBtn" class="btn primary">Start</button>
+          <button id="pauseBtn" class="btn" disabled>Pause</button>
+          <button id="resumeBtn" class="btn" disabled>Resume</button>
+          <button id="stopBtn" class="btn danger" disabled>Stop</button>
+        </div>
+
+        <div class="row small">
+          <label>Speed</label>
+          <input id="speedRange" type="range" min="1" max="10" value="5" aria-label="Speed slider">
+          <select id="presetSelect" aria-label="Preset">
+            <option value="default">Default</option>
+            <option value="stealth">Stealth (slow)</option>
+            <option value="aggressive">Aggressive (fast)</option>
+            <option value="silent">Silent (no sounds)</option>
+          </select>
+        </div>
+
+        <div class="row small">
+          <label>Batch (comma separated)</label>
+          <input id="batchInput" placeholder="@a,@b,@c" aria-label="Batch usernames">
+          <button id="loadBatchBtn" class="btn">Load</button>
+        </div>
+
+        <div class="row small">
+          <button id="saveSessionBtn" class="btn">Save Session</button>
+          <button id="loadSessionBtn" class="btn">Load Session</button>
+          <button id="shareStateBtn" class="btn">Get Permalink</button>
+        </div>
+
+        <div class="panel-foot small muted">This is a local-only simulation. No requests are sent to TikTok or any external service.</div>
+      </section>
+
+      <section class="center-panel card" id="centerPanel">
+        <div class="panel-head">Activity Feed</div>
+
+        <div class="toolbar">
+          <input id="searchLog" placeholder="Search log..." aria-label="Search log">
+          <label><input id="autoScroll" type="checkbox" checked> Auto-scroll</label>
+          <label><input id="showPackets" type="checkbox" checked> Packets</label>
+          <button id="exportCSV" class="btn">Export CSV</button>
+          <button id="clearLog" class="btn">Clear</button>
+          <button id="replayBtn" class="btn">Replay</button>
+          <button id="undoBtn" class="btn">Undo</button>
+        </div>
+
+        <div id="log" class="log" role="log" aria-live="polite" tabindex="0"></div>
+      </section>
+
+      <aside class="right-panel card" id="rightPanel">
+        <div class="panel-head">Inspector</div>
+        <div class="inspector">
+          <div><strong>Last Packet</strong></div>
+          <pre id="inspectorPre" class="inspector-pre">no activity yet</pre>
+
+          <div class="row small">
+            <button id="copyBtn" class="btn">Copy Payload</button>
+            <button id="downloadLogsBtn" class="btn">Download Logs</button>
+          </div>
+
+          <div class="meta small muted">
+            <div>Fake Source IP: <span id="fakeIp">0.0.0.0</span></div>
+            <div>Mode: <span id="modeLabel">idle</span></div>
+            <div>Reports Shown: <strong id="count">0</strong></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Footer / status -->
+    <footer class="bottom card small muted">
+      <div id="statusBar">Idle • Use Start to run simulation • Shortcuts: H Help, S Start, P Pause, R Resume, F Fullscreen, C Console</div>
+    </footer>
+
+    <!-- Console modal (toggle) -->
+    <div id="consoleModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-inner">
+        <div class="modal-head">Faux Console</div>
+        <pre id="consoleOutput" class="console-output">$ booting...
+</pre>
+        <div class="modal-foot small">
+          <button id="closeConsole" class="btn">Close</button>
+          <button id="copyConsole" class="btn">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help / Onboarding -->
+    <div id="helpModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-inner">
+        <div class="modal-head">Welcome to FoxReport</div>
+        <div class="modal-body">
+          <p>This demo simulates an "auto reporting" UI for educational/prank purposes only. No network calls are made.</p>
+          <ol>
+            <li>Type a username or batch, press <strong>Start</strong>.</li>
+            <li>Use presets/speed to adjust frequency (UI only).</li>
+            <li>Use Export CSV to download the simulated log.</li>
+          </ol>
+        </div>
+        <div class="modal-foot small">
+          <label><input id="dontShowHelp" type="checkbox"> Don't show on startup</label>
+          <button id="closeHelp" class="btn primary">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simulated CAPTCHA modal -->
+    <div id="captchaModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-inner">
+        <div class="modal-head">Simulated CAPTCHA</div>
+        <div class="modal-body">
+          <p>Prove you're human (simulation): click the fox</p>
+          <div class="captcha-area"><button id="captchaBtn" class="fox-btn">🦊</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
